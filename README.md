@@ -1,4 +1,4 @@
-# Cloud-Based Predictive Credit Fraud Detection Platform
+# Hybrid Cloud-Based Predictive Credit Fraud Detection Platform
 
 ## Overview
 This project is a **hybrid cloud-hosted platform** that detects fraudulent credit card transactions using **machine learning models** and **real-time transaction monitoring**. It integrates **secure cloud infrastructure**, compliance standards, and a user-friendly **fraud detection dashboard**.
