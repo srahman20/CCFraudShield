@@ -1,0 +1,53 @@
+-- Check for valid latitude (-90 to 90) and longitude (-180 to 180)
+SELECT 
+    *,
+    CASE 
+        WHEN Lat IS NULL THEN 'Null latitude'
+        WHEN Long IS NULL THEN 'Null longitude'
+        WHEN Lat < -90 OR Lat > 90 THEN 'Invalid latitude'
+        WHEN Long < -180 OR Long > 180 THEN 'Invalid longitude'
+        ELSE 'Valid coordinates'
+    END AS ValidationResult
+FROM USERS
+WHERE 
+    Lat IS NULL 
+    OR Long IS NULL
+    OR Lat < -90 
+    OR Lat > 90 
+    OR Long < -180 
+    OR Long > 180;
+
+-- Check for non-numeric values or format problems
+SELECT *
+FROM USERS
+WHERE 
+    ISNUMERIC(Lat) = 0 
+    OR ISNUMERIC(Long) = 0;
+
+-- Check for swapped lat/long values (US common errors)
+SELECT *
+FROM USERS
+WHERE 
+    -- Most US latitudes are between 25 and 50
+    -- Most US longitudes are between -65 and -125
+    (Lat < 25 OR Lat > 50)
+    OR (Long > -65 OR Long < -125)
+    ORDER BY Lat, Long;
+
+-- Check for suspicious precision (too many or too few decimal places)
+SELECT 
+    *,
+    LEN(PARSENAME(CAST(ABS(Latitude) AS VARCHAR(20)), 1)) AS LatDecimalPlaces,
+    LEN(PARSENAME(CAST(ABS(Longitude) AS VARCHAR(20)), 1)) AS LongDecimalPlaces
+FROM USERS
+WHERE 
+    LEN(PARSENAME(CAST(ABS(Latitude) AS VARCHAR(20)), 1)) < 4
+    OR LEN(PARSENAME(CAST(ABS(Longitude) AS VARCHAR(20)), 1)) < 4;
+
+-- Get a summary of your data quality
+SELECT 
+    COUNT(*) AS TotalRecords,
+    SUM(CASE WHEN Lat IS NULL OR Long IS NULL THEN 1 ELSE 0 END) AS NullCoordinates,
+    SUM(CASE WHEN Lat < -90 OR Lat > 90 OR Long < -180 OR Long > 180 THEN 1 ELSE 0 END) AS OutOfRangeCoordinates,
+    SUM(CASE WHEN ISNUMERIC(Latitude) = 0 OR ISNUMERIC(Longitude) = 0 THEN 1 ELSE 0 END) AS NonNumericCoordinates
+FROM USERS;
