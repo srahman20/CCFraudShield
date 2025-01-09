@@ -1,0 +1,71 @@
+CREATE TABLE #TempUsers (
+    user_id BIGINT,
+    domain VARCHAR(255),
+    Gender VARCHAR(50),
+    YOB INT,
+    CC_Score BIGINT,
+    state VARCHAR(2),
+    zip BIGINT,
+    lat_temporary FLOAT,
+    long_temporary FLOAT
+);
+
+-- Check for values that can't be converted to their target data types
+SELECT 
+    'user_id' as Column_Name, COUNT(*) as Invalid_Count
+FROM USERS 
+WHERE ISNUMERIC(user_id) = 0 AND user_id IS NOT NULL
+UNION ALL
+SELECT 'YOB', COUNT(*)
+FROM USERS 
+WHERE ISNUMERIC(YOB) = 0 AND YOB IS NOT NULL
+UNION ALL
+SELECT 'CC_Score', COUNT(*)
+FROM USERS 
+WHERE ISNUMERIC(CC_Score) = 0 AND CC_Score IS NOT NULL
+UNION ALL
+SELECT 'zip', COUNT(*)
+FROM USERS 
+WHERE ISNUMERIC(zip) = 0 AND zip IS NOT NULL
+UNION ALL
+SELECT 'lat_temporary', COUNT(*)
+FROM USERS 
+WHERE ISNUMERIC(lat_temporary) = 0 AND lat_temporary IS NOT NULL
+UNION ALL
+SELECT 'long_temporary', COUNT(*)
+FROM USERS 
+WHERE ISNUMERIC(long_temporary) = 0 AND long_temporary IS NOT NULL;
+
+SELECT 
+    COUNT(CASE WHEN TRY_CAST(YOB as INT) NOT BETWEEN 1900 AND YEAR(GETDATE()) THEN 1 END) as Invalid_YOB_Count,
+    COUNT(CASE WHEN LEN(state) > 2 THEN 1 END) as Invalid_State_Length,
+    COUNT(CASE WHEN TRY_CAST(zip as BIGINT) NOT BETWEEN 0 AND 99999 THEN 1 END) as Invalid_Zip_Count,
+    COUNT(CASE WHEN TRY_CAST(lat_temporary as FLOAT) NOT BETWEEN -90 AND 90 THEN 1 END) as Invalid_Lat_Count,
+    COUNT(CASE WHEN TRY_CAST(long_temporary as FLOAT) NOT BETWEEN -180 AND 180 THEN 1 END) as Invalid_Long_Count
+FROM USERS;
+
+CREATE TABLE Users_Clean (
+    user_id BIGINT,
+    domain VARCHAR(255),
+    Gender VARCHAR(50),
+    YOB INT,
+    CC_Score BIGINT,
+    state VARCHAR(2),
+    zip BIGINT,
+    lat_temporary FLOAT,
+    long_temporary FLOAT
+);
+
+INSERT INTO Users_Clean
+SELECT 
+    TRY_CAST(user_id as BIGINT),
+    CAST(domain as VARCHAR(255)),
+    CAST(Gender as VARCHAR(50)),
+    TRY_CAST(YOB as INT),
+    TRY_CAST(CC_Score as BIGINT),
+    CAST(state as VARCHAR(2)),
+    TRY_CAST(zip as BIGINT),
+    TRY_CAST(lat_temporary as FLOAT),
+    TRY_CAST(long_temporary as FLOAT)
+FROM USERS;
+
